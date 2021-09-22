@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include <netdb.h>
 #include <libgen.h>
 #include <string.h>
@@ -11,6 +12,12 @@
 #include <assert.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <sys/wait.h>
 
 /* Persistent state for the robust I/O (Rio) package */
 /* $begin rio_t */
@@ -46,10 +53,36 @@ ssize_t Rio_readnb(rio_t *rp, void *usrbuf, size_t n);
 ssize_t Rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
 
 /* Client/server helper functions */
-char hostname[MAXLINE];
-char sername[MAXLINE];
+//char hostname[MAXLINE];
+//char servername[MAXLINE];
 int openlisenfd(char* ip, int port);
 int acceptREQ(int fd);
-void closecon(int fd);
-void closelis(int fd);
+
+/* Memory mapping wrappers */
+void *Mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
+void Munmap(void *start, size_t length);
+
+/* Unix I/O wrappers */
+int Open(const char *pathname, int flags, mode_t mode);
+ssize_t Read(int fd, void *buf, size_t count);
+ssize_t Write(int fd, const void *buf, size_t count);
+off_t Lseek(int fildes, off_t offset, int whence);
+void Close(int fd);
+int Select(int  n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, 
+	   struct timeval *timeout);
+int Dup2(int fd1, int fd2);
+void Stat(const char *filename, struct stat *buf);
+void Fstat(int fd, struct stat *buf) ;
+
+/* Process control wrappers */
+pid_t Fork(void);
+void Execve(const char *filename, char *const argv[], char *const envp[]);
+pid_t Wait(int *status);
+pid_t Waitpid(pid_t pid, int *iptr, int options);
+void Kill(pid_t pid, int signum);
+unsigned int Sleep(unsigned int secs);
+void Pause(void);
+unsigned int Alarm(unsigned int seconds);
+void Setpgid(pid_t pid, pid_t pgid);
+pid_t Getpgrp();
 #endif
